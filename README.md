@@ -1,1 +1,0 @@
-这是利用 ApiNatsBridge 的示例模板程序。
