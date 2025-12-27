@@ -125,34 +125,36 @@ nats_subject: "ping_req"
 
 ## 测试
 
-需要同时运行 NATS Server 和 ApiNatsBridge：
+1. 启动 NATS Server
+   - `nats-server.exe -c example-config\nats-server.conf"`
 
-```powershell
-# 1. 启动 NATS Server
-Start-Process -FilePath ".\nats-server.exe" -WorkingDirectory "..\test\nats-server" -ArgumentList "-c nats-server.conf"
+2. 启动 ApiNatsBridge
+   - `ApiNatsBridge.exe -c example-config\ApiNatsBridgeConfig.yaml`
 
-# 2. 启动本微服务
-.\ApiNatsBridgeTemplate.exe -c config.yaml
+3. 启动本微服务
+   - `ApiNatsBridgeTemplate.exe -c config.yaml`
 
-# 3. 启动 ApiNatsBridge
-..\ApiNatsBridge.exe -c ..\test\ApiNatsBridgeConfig.yaml
-
-# 4. 发送请求（PowerShell）
-Invoke-RestMethod "http://127.0.0.1:9080/ping?timestamp=$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
-```
-
-```bash
-# 4. 发送请求（Bash）
-curl "http://127.0.0.1:9080/ping?timestamp=$(date +%s%3N)"
-```
+4. 发送请求
+   - PowerShell: `Invoke-RestMethod "http://127.0.0.1:9080/ping?timestamp=$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"`
+   - Bash: `curl "http://127.0.0.1:9080/ping?timestamp=$(date +%s%3N)"`
 
 ## 项目结构
 
-| 文件          | 用途                                      |
-| ------------- | ----------------------------------------- |
-| `main.go`     | 入口：配置加载、NATS 连接、订阅、优雅关闭 |
-| `handler.go`  | ping 处理逻辑：时间戳差值计算与 IP 提取   |
-| `config.yaml` | NATS 连接与订阅主题配置                   |
+| 文件/目录         | 用途                                                       |
+| ----------------- | ---------------------------------------------------------- |
+| `main.go`         | 入口：配置加载、NATS 连接、订阅、优雅关闭                  |
+| `handler.go`      | ping 处理逻辑：时间戳差值计算与 IP 提取                    |
+| `config.yaml`     | NATS 连接与订阅主题配置                                    |
+| `example-config/` | 示例配置文件目录，包含 ApiNatsBridge 和 NATS Server 的配置 |
+
+### example-config 目录
+
+`example-config/` 目录包含搭配本模板使用的示例配置文件：
+
+| 文件                       | 用途                                              |
+| -------------------------- | ------------------------------------------------- |
+| `ApiNatsBridgeConfig.yaml` | ApiNatsBridge 主程序配置（HTTP 服务、NATS、路由） |
+| `nats-server.conf`         | NATS Server 配置（监听地址、认证、性能限制）      |
 
 ## 许可证
 
