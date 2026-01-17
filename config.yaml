@@ -1,26 +1,12 @@
-# ============================================================
-# ApiNatsBridgeTemplate 設定檔 — 微服務範本
-# ============================================================
-
-# --- NATS 用戶端設定 ---
 nats_config:
-  nats_server_host: 127.0.0.1 # NATS 伺服器的 IP 地址或主機名稱
-  nats_server_port: 4222 # NATS 伺服器的埠號（預設 4222）
+  nats_server_host: 127.0.0.1
+  nats_server_port: 4222
+  nats_user: webapi
+  nats_password: Ohr1biolei4aeD3eu7isaeyie9di4uuf
+  nats_client_name: PingService
+  nats_max_reconnects: 5
+  nats_reconnect_wait: 2
+  nats_connect_timeout: 10
+  nats_encryption_key: "GLOBAL_BACKUP_KEY_32_CHARS_LONG!"
 
-  # 連線認證（留空則不啟用認證）
-  nats_user: webapi # NATS 連線使用的使用者名稱
-  nats_password: Ohr1biolei4aeD3eu7isaeyie9di4uuf # NATS 連線使用的密碼
-
-  nats_client_name: PingService # NATS 用戶端名稱，用於伺服器端識別此連線
-
-  # 重連策略
-  nats_max_reconnects: 5 # 與 NATS 伺服器斷線後的最大重連次數，-1 表示無限重連
-  nats_reconnect_wait: 2 # 每次重連嘗試之間的等待時間（秒）
-  nats_connect_timeout: 10 # 初始連線的最大等待時間（秒）
-
-  # AES 對稱加密金鑰（長度必須為 16 / 24 / 32 位元組）
-  # 必須與 ApiNatsBridge 主程式設定檔中的金鑰一致
-  nats_encryption_key: "GLOBAL_BACKUP_KEY_32_CHARS_LONG!" # 全域加密金鑰
-
-# --- 訂閱設定 ---
-nats_subject: "ping_req" # 需要訂閱並處理請求的 NATS Subject，必須與主程式路由設定中的 nats_subject 一致
+nats_subject: "ping_req"

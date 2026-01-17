@@ -1,5 +1,7 @@
 # ApiNatsBridgeTemplate
 
+**简体中文** | [English version](#english)
+
 [ApiNatsBridge](https://github.com/MasaeProject/ApiNatsBridge) 的微服务模板项目。通过 NATS 接收由 ApiNatsBridge 转发的 HTTP 请求，处理后返回响应。
 
 本示例实现了一个 `/ping` 端点：接收可选的毫秒时间戳参数，返回时间差值与客户端 IP。
@@ -126,7 +128,7 @@ nats_subject: "ping_req"
 ## 测试
 
 1. 启动 NATS Server
-   - `nats-server.exe -c example-config\nats-server.conf"`
+   - `nats-server.exe -c example-config\nats-server.conf`
 
 2. 启动 ApiNatsBridge
    - `ApiNatsBridge.exe -c example-config\ApiNatsBridgeConfig.yaml`
@@ -156,6 +158,164 @@ nats_subject: "ping_req"
 | `ApiNatsBridgeConfig.yaml` | ApiNatsBridge 主程序配置（HTTP 服务、NATS、路由） |
 | `nats-server.conf`         | NATS Server 配置（监听地址、认证、性能限制）      |
 
-## 许可证
+---
 
-请修改为你自己的许可证。
+## English <a id="english"></a>
+
+[简体中文](#top) | **EnglishEnglish**
+
+A microservice template project for [ApiNatsBridge](https://github.com/MasaeProject/ApiNatsBridge). Receives HTTP requests forwarded by ApiNatsBridge via NATS, processes them, and returns responses.
+
+This example implements a `/ping` endpoint: accepts an optional millisecond timestamp parameter, returns the time difference and client IP.
+
+## Flow
+
+```
+Client                     ApiNatsBridge                 This Program
+  |                           |                          |
+  |  GET /ping?timestamp=xxx  |                          |
+  |-------------------------->|                          |
+  |                           |  NATS (ping_req)         |
+  |                           |------------------------->|
+  |                           |                          | Calculate latency
+  |                           |  NATS (response)         |
+  |                           |<-------------------------|
+  |  JSON response            |                          |
+  |<--------------------------|                          |
+```
+
+## Request
+
+```
+GET /ping?timestamp=1716000000000
+```
+
+- `timestamp` (optional): The millisecond Unix timestamp at the time the client sends the request.
+
+## Response
+
+```json
+{ "pong": 42, "ip": "127.0.0.1" }
+```
+
+| Field  | Type   | Description                                                                                 |
+| ------ | ------ | ------------------------------------------------------------------------------------------- |
+| `pong` | int64  | If timestamp is provided: the difference between server current time and the timestamp (ms) |
+| `ip`   | string | Client IP address                                                                           |
+
+## Build
+
+```bash
+go build .
+```
+
+## Run
+
+```bash
+./ApiNatsBridgeTemplate -c config.yaml
+```
+
+### Command Line Arguments
+
+| Flag | Description                                                                            |
+| ---- | -------------------------------------------------------------------------------------- |
+| `-c` | Specify YAML config file path (default: `<executable_name>.yaml` in current directory) |
+| `-o` | Specify log output file path (writes to both terminal and file)                        |
+
+## NATS Message Format
+
+### Request (bridgeRequest)
+
+When ApiNatsBridge forwards an HTTP request, the NATS message JSON structure is as follows:
+
+```json
+{
+  "method": "GET",
+  "path": "/ping",
+  "headers": { "Accept": "application/json" },
+  "cookies": {},
+  "remote_addr": "127.0.0.1:12345",
+  "ip": "127.0.0.1",
+  "params": { "timestamp": "1716000000000" },
+  "body": ""
+}
+```
+
+| Field         | Type              | Description                              |
+| ------------- | ----------------- | ---------------------------------------- |
+| `method`      | string            | HTTP request method (GET, POST, etc.)    |
+| `path`        | string            | Request path                             |
+| `headers`     | map[string]string | Request headers                          |
+| `cookies`     | map[string]string | Request cookies                          |
+| `remote_addr` | string            | Original remote address (including port) |
+| `ip`          | string            | Client IP address                        |
+| `params`      | map[string]string | Query parameters                         |
+| `body`        | string            | Request body                             |
+
+### Response (bridgeResponse)
+
+After the microservice finishes processing, it must return the following JSON structure:
+
+```json
+{
+  "status_code": 200,
+  "headers": { "Content-Type": "application/json; charset=utf-8" },
+  "body": "{\"pong\":42,\"ip\":\"127.0.0.1\"}"
+}
+```
+
+| Field         | Type              | Description                 |
+| ------------- | ----------------- | --------------------------- |
+| `status_code` | int               | HTTP response status code   |
+| `headers`     | map[string]string | Response headers            |
+| `body`        | string            | Response body (JSON string) |
+
+## Config File
+
+```yaml
+nats_config:
+  nats_server_host: 127.0.0.1
+  nats_server_port: 4222
+  nats_user: webapi
+  nats_password: Ohr1biolei4aeD3eu7isaeyie9di4uuf
+  nats_client_name: PingService
+  nats_max_reconnects: 5
+  nats_reconnect_wait: 2
+  nats_connect_timeout: 10
+  nats_encryption_key: "GLOBAL_BACKUP_KEY_32_CHARS_LONG!"
+
+nats_subject: "ping_req"
+```
+
+## Testing
+
+1. Start NATS Server
+   - `nats-server.exe -c example-config\nats-server.conf`
+
+2. Start ApiNatsBridge
+   - `ApiNatsBridge.exe -c example-config\ApiNatsBridgeConfig.yaml`
+
+3. Start this microservice
+   - `ApiNatsBridgeTemplate.exe -c config.yaml`
+
+4. Send a request
+   - PowerShell: `Invoke-RestMethod "http://127.0.0.1:9080/ping?timestamp=$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"`
+   - Bash: `curl "http://127.0.0.1:9080/ping?timestamp=$(date +%s%3N)"`
+
+## Project Structure
+
+| File/Directory    | Purpose                                                                    |
+| ----------------- | -------------------------------------------------------------------------- |
+| `main.go`         | Entrypoint: config loading, NATS connection, subscribe, graceful shutdown  |
+| `handler.go`      | Ping processing logic: timestamp diff calculation and IP echo              |
+| `config.yaml`     | NATS connection and subscription topic configuration                       |
+| `example-config/` | Example config directory, containing ApiNatsBridge and NATS Server configs |
+
+### example-config Directory
+
+The `example-config/` directory contains example configuration files to use with this template:
+
+| File                       | Purpose                                                        |
+| -------------------------- | -------------------------------------------------------------- |
+| `ApiNatsBridgeConfig.yaml` | ApiNatsBridge main program config (HTTP service, NATS, routes) |
+| `nats-server.conf`         | NATS Server config (listen address, auth, performance limits)  |

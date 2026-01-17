@@ -5,29 +5,41 @@ import (
 	"time"
 )
 
-// pingResponse 表示 ping 請求的回應資料。
+// pingResponse 表示 ping 请求的响应数据。
+// pingResponse represents the response data of a ping request.
 //
-// Pong 會依照請求參數中的 timestamp 決定回傳內容：
-// 若有提供有效的客戶端時間戳，則回傳目前時間與該時間戳的差值；
-// 若未提供有效時間戳，則回傳目前伺服器時間戳。
+// Pong 会依照请求参数中的 timestamp 决定回传内容：
+// Pong will return different values based on the timestamp in the request parameters:
+// 若有提供有效的客户端时间戳，则回传当前时间与该时间戳的差值；
+// If a valid client timestamp is provided, it returns the difference between current time and that timestamp;
+// 若未提供有效时间戳，则回传当前服务器时间戳。
+// If no valid timestamp is provided, it returns the current server timestamp.
 type pingResponse struct {
-	// Pong 表示延遲毫秒數，或目前伺服器時間戳毫秒值。
+	// Pong 表示延迟毫秒数，或当前服务器时间戳毫秒值。
+	// Pong represents the latency in milliseconds, or the current server timestamp in milliseconds.
 	Pong int64 `json:"pong"`
 
-	// IP 表示請求來源 IP。
+	// IP 表示请求来源 IP。
+	// IP represents the requesting client's IP address.
 	IP string `json:"ip"`
 }
 
-// handlePing 處理 ping 請求並產生回應。
+// handlePing 处理 ping 请求并产生响应。
+// handlePing processes a ping request and generates a response.
 //
-// 此函式會從請求參數中讀取 timestamp，
-// 若 timestamp 可成功解析為毫秒時間戳，則計算伺服器目前時間與客戶端時間戳的差值；
-// 否則直接回傳伺服器目前的毫秒時間戳。
+// 此函数会从请求参数中读取 timestamp，
+// This function reads the timestamp from the request parameters,
+// 若 timestamp 可成功解析为毫秒时间戳，则计算服务器当前时间与客户端时间戳的差值；
+// If timestamp can be successfully parsed as a millisecond timestamp, it calculates the diff between server time and client timestamp;
+// 否则直接回传服务器当前的毫秒时间戳。
+// Otherwise it directly returns the server's current millisecond timestamp.
 func handlePing(req *bridgeRequest) *pingResponse {
-	// clientTimestampMs 保存客戶端傳入的毫秒時間戳。
+	// clientTimestampMs 保存客户端传入的毫秒时间戳。
+	// clientTimestampMs holds the millisecond timestamp from the client.
 	var clientTimestampMs int64
 
-	// 嘗試從請求參數中取得 timestamp，並解析為 64 位元整數。
+	// 尝试从请求参数中取得 timestamp，并解析为 64 位整数。
+	// Attempt to get the timestamp from request parameters and parse it as a 64-bit integer.
 	if ts, ok := req.Params["timestamp"]; ok && ts != "" {
 		parsed, err := strconv.ParseInt(ts, 10, 64)
 		if err == nil {
@@ -35,20 +47,25 @@ func handlePing(req *bridgeRequest) *pingResponse {
 		}
 	}
 
-	// 取得目前伺服器時間的毫秒時間戳。
+	// 取得当前服务器时间的毫秒时间戳。
+	// Get the current server time in milliseconds.
 	nowMs := time.Now().UnixMilli()
 
-	// pong 保存最終要回傳的時間值或延遲值。
+	// pong 保存最终要回传的时间值或延迟值。
+	// pong holds the final time value or latency value to return.
 	var pong int64
 	if clientTimestampMs > 0 {
-		// 若客戶端提供有效時間戳，計算往返或處理時間差。
+		// 若客户端提供有效时间戳，计算往返或处理时间差。
+		// If the client provided a valid timestamp, calculate the round-trip or processing time difference.
 		pong = nowMs - clientTimestampMs
 	} else {
-		// 若沒有有效時間戳，直接回傳目前伺服器時間。
+		// 若没有有效时间戳，直接回传当前服务器时间。
+		// If no valid timestamp, directly return the current server time.
 		pong = nowMs
 	}
 
-	// 回傳 ping 結果與請求來源 IP。
+	// 回传 ping 结果与请求来源 IP。
+	// Return the ping result and the requesting client IP.
 	return &pingResponse{
 		Pong: pong,
 		IP:   req.IP,

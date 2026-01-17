@@ -1,172 +1,270 @@
 # ============================================================
-# ApiNatsBridge 示例設定檔 — 搭配 ApiNatsBridgeTemplate 使用
+# ApiNatsBridge 示例配置文件 — 搭配 ApiNatsBridgeTemplate 使用
+# ApiNatsBridge example config — for use with ApiNatsBridgeTemplate
 # ============================================================
 
-# --- HTTP API 伺服器設定 (nyaapiserver.HttpAPIServerConfig) ---
+# --- HTTP API 服务器配置 (nyaapiserver.HttpAPIServerConfig) ---
+# --- HTTP API Server Config (nyaapiserver.HttpAPIServerConfig) ---
 httpapiserver_config:
-  httpapiserver_host: "127.0.0.1" # HTTP 伺服器監聽的 IP 地址，設為 0.0.0.0 可接受所有介面的連線
-  httpapiserver_port: 9080 # HTTP 伺服器監聽的埠號
+  # HTTP 服务器监听的 IP 地址，设为 0.0.0.0 可接受所有接口的连接 / HTTP server listen IP, set to 0.0.0.0 to accept connections on all interfaces
+  httpapiserver_host: "127.0.0.1"
+  # HTTP 服务器监听的端口号 / HTTP server listen port
+  httpapiserver_port: 9080
 
-  # TLS 憑證：兩者皆填時啟用 HTTPS，留空則使用 HTTP
-  httpapiserver_tls_cert_file: "" # TLS 憑證檔案路徑（PEM 格式）
-  httpapiserver_tls_key_file: "" # TLS 私鑰檔案路徑（PEM 格式）
+  # TLS 证书：两者皆填时启用 HTTPS，留空则使用 HTTP / TLS certificate: fill both to enable HTTPS, leave empty to use HTTP
+  # TLS 证书文件路径（PEM 格式） / TLS certificate file path (PEM format)
+  httpapiserver_tls_cert_file: ""
+  # TLS 私钥文件路径（PEM 格式） / TLS private key file path (PEM format)
+  httpapiserver_tls_key_file: ""
 
-  # 逾時設定 (秒)
-  httpapiserver_read_timeout: 5 # 讀取完整請求的最大等待時間（秒），防止慢速用戶端佔用連線
-  httpapiserver_write_timeout: 30 # 寫入回應的最大等待時間（秒），包含處理時間
-  httpapiserver_idle_timeout: 60 # Keep-Alive 連線的最大閒置時間（秒），超時後自動斷開
+  # 超时设置 (秒) / Timeout settings (seconds)
+  # 读取完整请求的最大等待时间（秒），防止慢速客户端占用连接 / Maximum wait time to read a complete request (seconds), prevents slow clients from holding connections
+  httpapiserver_read_timeout: 5
+  # 写入响应的最大等待时间（秒），包含处理时间 / Maximum wait time to write a response (seconds), includes processing time
+  httpapiserver_write_timeout: 30
+  # Keep-Alive 连接的最大闲置时间（秒），超时后自动断开 / Maximum idle time for Keep-Alive connections (seconds), auto-disconnect after timeout
+  httpapiserver_idle_timeout: 60
 
-  # IP 限流
-  httpapiserver_enable_rate_limit: true # 是否啟用基於 IP 的請求限流
-  httpapiserver_limit_requests: 50 # 時間窗口內單個 IP 允許的最大請求次數
-  httpapiserver_limit_window: 1 # 限流時間窗口大小（秒）
-  httpapiserver_block_duration: 600 # 超出限制後封鎖該 IP 的持續時間（秒）
+  # IP 限流 / IP rate limiting
+  # 是否启用基于 IP 的请求限流 / Whether to enable IP-based request rate limiting
+  httpapiserver_enable_rate_limit: true
+  # 时间窗口内单个 IP 允许的最大请求次数 / Maximum number of requests allowed per IP within the time window
+  httpapiserver_limit_requests: 50
+  # 限流时间窗口大小（秒） / Rate limiting time window size (seconds)
+  httpapiserver_limit_window: 1
+  # 超出限制后封禁该 IP 的持续时间（秒） / Duration to block the IP after exceeding the limit (seconds)
+  httpapiserver_block_duration: 600
 
-# --- NATS 用戶端設定 (nyanats.NatsConfig) ---
+# --- NATS 客户端配置 (nyanats.NatsConfig) ---
+# --- NATS Client Config (nyanats.NatsConfig) ---
 nats_config:
-  nats_server_host: 127.0.0.1 # NATS 伺服器的 IP 地址或主機名稱
-  nats_server_port: 4222 # NATS 伺服器的埠號（預設 4222）
+  # NATS 服务器的 IP 地址或主机名 / NATS server IP address or hostname
+  nats_server_host: 127.0.0.1
+  # NATS 服务器的端口号（默认 4222） / NATS server port (default 4222)
+  nats_server_port: 4222
 
-  # 連線認證 (留空則不啟用認證)
-  nats_user: webapi # NATS 連線使用的使用者名稱
-  nats_password: Ohr1biolei4aeD3eu7isaeyie9di4uuf # NATS 連線使用的密碼
+  # 连接认证 (留空则不启用认证) / Connection authentication (leave empty to disable authentication)
+  # NATS 连接使用的用户名 / Username for NATS connection
+  nats_user: webapi
+  # NATS 连接使用的密码 / Password for NATS connection
+  nats_password: Ohr1biolei4aeD3eu7isaeyie9di4uuf
 
-  nats_client_name: ApiNatsBridgeTest # NATS 用戶端名稱，用於伺服器端識別此連線
+  # NATS 客户端名称，用于服务器端识别此连接 / NATS client name, used for server-side identification of this connection
+  nats_client_name: ApiNatsBridgeTest
 
-  # 重連策略
-  nats_max_reconnects: 5 # 與 NATS 伺服器斷線後的最大重連次數，-1 表示無限重連
-  nats_reconnect_wait: 2 # 每次重連嘗試之間的等待時間（秒）
-  nats_connect_timeout: 10 # 初始連線的最大等待時間（秒）
+  # 重连策略 / Reconnect policy
+  # 与 NATS 服务器断线后的最大重连次数，-1 表示无限重连 / Maximum reconnection attempts after disconnection from NATS server, -1 means unlimited
+  nats_max_reconnects: 5
+  # 每次重连尝试之间的等待时间（秒） / Wait time between each reconnection attempt (seconds)
+  nats_reconnect_wait: 2
+  # 初始连接的最大等待时间（秒） / Maximum wait time for initial connection (seconds)
+  nats_connect_timeout: 10
 
-  # AES 對稱加密：長度必須為 16 / 24 / 32 字節（對應 AES-128 / AES-192 / AES-256）
-  # 留空則明文傳輸；可使用 nyanats.GenerateRandomKey() 產生隨機金鑰
-  nats_encryption_key: "GLOBAL_BACKUP_KEY_32_CHARS_LONG!" # 全域加密金鑰，所有未指定專用金鑰的主題皆使用此金鑰
+  # AES 对称加密：长度必须为 16 / 24 / 32 字节（对应 AES-128 / AES-192 / AES-256）
+  # AES symmetric encryption: length must be 16 / 24 / 32 bytes (corresponding to AES-128 / AES-192 / AES-256)
+  # 留空则明文传输；可使用 nyanats.GenerateRandomKey() 生成随机密钥 / Leave empty for plaintext transmission; use nyanats.GenerateRandomKey() to generate a random key
+  # 全局加密密钥，所有未指定专用密钥的主题皆使用此密钥 / Global encryption key, used for all subjects without a specific key
+  nats_encryption_key: "GLOBAL_BACKUP_KEY_32_CHARS_LONG!"
 
-  # 個別主題專用金鑰（優先於全域金鑰）
-  # 設為 "" 表示該主題明文傳輸
-  nats_theme_keys: {} # 主題名稱到專用金鑰的映射表，此處為空（全部使用全域金鑰）
+  # 个别主题专用密钥（优先于全局密钥） / Subject-specific keys (takes priority over the global key)
+  # 设为 "" 表示该主题明文传输 / Set to "" for plaintext transmission on that subject
+  # 主题名称到专用密钥的映射表，此处为空（全部使用全局密钥） / Mapping from subject names to dedicated keys, empty here (all use global key)
+  nats_theme_keys: {}
 
-# --- 橋接層設定 ---
+# --- 桥接层配置 ---
+# --- Bridge Layer Config ---
 bridge:
-  # 多國語言設定（可選值：en、zh、zh_Hant、ja）
+  # 多语言配置（可选值：en、zh、zh_Hant、ja） / Localization settings (options: en, zh, zh_Hant, ja)
   language:
-    log: "zh" # 日誌輸出語言
-    http: "en" # HTTP 回應錯誤訊息語言
-    cli: "zh" # 命令列相關訊息語言
+    # 日志输出语言 / Log output language
+    log: "zh"
+    # HTTP 响应错误消息语言 / HTTP response error message language
+    http: "en"
+    # 命令行相关消息语言 / CLI message language
+    cli: "zh"
 
-  # 日誌輸出設定
+  # 日志输出配置 / Log output settings
   log:
-    stdout: true # 是否同時輸出到控制台，設為 false 則僅寫入檔案
-    debug: true # 是否啟用除錯等級日誌，設為 false 則僅輸出 Info 及以上等級
-    overwrite: true # 是否使用覆蓋模式，設為 true 則啟動時清空現有日誌檔案，設為 false 或不提供則僅追加
-    color: true # 是否使用彩色控制台輸出，設為 true 或不提供則使用彩色，設為 false 則純文字
+    # 是否同时输出到控制台，设为 false 则仅写入文件 / Whether to also output to console, set to false to write to files only
+    stdout: true
+    # 是否启用调试级别日志，设为 false 则仅输出 Info 及以上级别 / Whether to enable debug-level logging, set to false for Info and above only
+    debug: true
+    # 是否使用覆盖模式，设为 true 则启动时清空现有日志文件，设为 false 或不提供则仅追加 / Whether to use overwrite mode, set to true to clear existing log files on startup, set to false or omit to append only
+    overwrite: true
+    # 是否使用彩色控制台输出，设为 true 或不提供则使用彩色，设为 false 则纯文本 / Whether to use colored console output, set to true or omit for colors, set to false for plain text
+    color: true
     files:
-      # 各模組獨立日誌檔案路徑，可分別設定
-      # 留空或不填則該模組不寫入檔案
-      main: "logs/main.log" # 主流程日誌（啟動、關閉、設定載入等）
-      bridge: "logs/bridge.log" # 橋接路由與轉發日誌（路由匹配、NATS 發送等）
-      http: "logs/http.log" # HTTP 請求日誌（每筆請求的方法、路徑、狀態碼等）
-      nats: "logs/nats.log" # NATS 用戶端事件日誌（連線、斷線、重連等）
-      httpstat: "logs/httpstat.log" # HTTP 伺服器執行統計日誌（定期彙整的效能指標）
-      module: "logs/module.log" # 通用模組日誌（如 /ping 等內建模組輸出）
+      # 各模块独立日志文件路径，可分别配置 / Individual log file paths for each module, configurable separately
+      # 留空或不填则该模块不写入文件 / Leave empty or omit to disable file output for that module
+      # 主流程日志（启动、关闭、配置加载等） / Main process log (startup, shutdown, config loading, etc.)
+      main: "logs/main.log"
+      # 桥接路由与转发日志（路由匹配、NATS 发送等） / Bridge routing and forwarding log (route matching, NATS publishing, etc.)
+      bridge: "logs/bridge.log"
+      # HTTP 请求日志（每笔请求的方法、路径、状态码等） / HTTP request log (method, path, status code for each request)
+      http: "logs/http.log"
+      # NATS 客户端事件日志（连接、断线、重连等） / NATS client event log (connect, disconnect, reconnect, etc.)
+      nats: "logs/nats.log"
+      # HTTP 服务器运行统计日志（定期汇总的性能指标） / HTTP server runtime stats log (periodically aggregated performance metrics)
+      httpstat: "logs/httpstat.log"
+      # 通用模块日志（如 /ping 等内置模块输出） / Generic module log (output from built-in modules like /ping)
+      module: "logs/module.log"
 
-  # 時區，影響所有日誌時間戳，支援 IANA 時區名稱（如 Asia/Shanghai、America/New_York）或小時偏移（如 8、-5）
+  # 时区，影响所有日志时间戳，支持 IANA 时区名称（如 Asia/Shanghai、America/New_York）或小时偏移（如 8、-5）
+  # Timezone, affects all log timestamps, supports IANA timezone names (e.g. Asia/Shanghai, America/New_York) or hour offsets (e.g. 8, -5)
   timezone: "Asia/Shanghai"
 
-  # CDN 服務商傳遞真實 IP 的專屬標頭清單, 若 CDN 僅使用 X-Forwarded-For，則無需加入
+  # CDN 服务商传递真实 IP 的专属标头列表, 若 CDN 仅使用 X-Forwarded-For，则无需加入
+  # List of CDN provider-specific headers that carry the real IP; if the CDN only uses X-Forwarded-For, no need to add here
   cdnheader:
     - "CF-Connecting-IP" # Cloudflare
     - "True-Client-IP" # Akamai / Cloudflare Enterprise
 
-  # 允許接收錯誤詳細資訊的 IP 白名單（用於開發除錯）
+  # 允许接收错误详细信息的 IP 白名单（用于开发调试） / IP whitelist allowed to receive detailed error information (for development debugging)
   error_detail_ips:
-    - "127.0.0.1" # IPv4 本機地址
-    - "::1" # IPv6 本機地址
+    - "127.0.0.1" # IPv4 本机地址 / IPv4 localhost
+    - "::1" # IPv6 本机地址 / IPv6 localhost
 
-  # 自動為用戶端 Cookie 寫入 UUID 的鍵名（留空或不填則不啟用）
-  cookie_uuid_key: "brid" # Cookie 鍵名，首次訪問時自動生成 UUID 並寫入此 Cookie
+  # 自动为客户端 Cookie 写入 UUID 的键名（留空或不填则不启用） / Cookie key name to automatically write a UUID to client cookies (leave empty or omit to disable)
+  cookie_uuid_key: "brid" # Cookie 键名，首次访问时自动生成 UUID 并写入此 Cookie / Cookie key name, auto-generates a UUID on first visit and writes it to this cookie
 
-  # 請求欄位長度限制（全域層級，0 或省略表示不限制，可被路由層級覆蓋）
+  # 请求字段长度限制（全局级别，0 或省略表示不限制，可被路由级别覆盖） / Request field length limits (global level, 0 or omitted means no limit, can be overridden at the route level)
   limits:
     path:
-      max_length: 2048 # 請求路徑最大長度（位元組）
+      # 请求路径最大长度（字节） / Request path maximum length (bytes)
+      max_length: 2048
     headers:
-      max_count: 64 # 請求標頭最大筆數
-      max_key_length: 256 # 請求標頭名稱最大長度（位元組）
-      max_value_length: 4096 # 請求標頭值最大長度（位元組）
+      # 请求标头最大笔数 / Maximum number of request headers
+      max_count: 64
+      # 请求标头名称最大长度（字节） / Request header name maximum length (bytes)
+      max_key_length: 256
+      # 请求标头值最大长度（字节） / Request header value maximum length (bytes)
+      max_value_length: 4096
     cookies:
-      max_count: 32 # Cookie 最大筆數
-      max_key_length: 256 # Cookie 名稱最大長度（位元組）
-      max_value_length: 4096 # Cookie 值最大長度（位元組）
+      # Cookie 最大笔数 / Maximum number of cookies
+      max_count: 32
+      # Cookie 名称最大长度（字节） / Cookie name maximum length (bytes)
+      max_key_length: 256
+      # Cookie 值最大长度（字节） / Cookie value maximum length (bytes)
+      max_value_length: 4096
     params:
-      max_count: 64 # URL 查詢參數最大筆數
-      max_key_length: 256 # 參數名稱最大長度（位元組）
-      max_value_length: 4096 # 參數值最大長度（位元組）
+      # URL 查询参数最大笔数 / Maximum number of URL query parameters
+      max_count: 64
+      # 参数名称最大长度（字节） / Parameter name maximum length (bytes)
+      max_key_length: 256
+      # 参数值最大长度（字节） / Parameter value maximum length (bytes)
+      max_value_length: 4096
     body:
-      max_length: 1048576 # 請求本文最大長度（位元組，此例為 1MB）
-  response_limits: # 回應欄位長度限制（全域層級，可被路由級別覆蓋）
+      # 请求正文最大长度（字节，此例为 1MB） / Request body maximum length (bytes, 1MB in this example)
+      max_length: 1048576
+  # 响应字段长度限制（全局级别，可被路由级别覆盖） / Response field length limits (global level, can be overridden at the route level)
+  response_limits:
     body:
-      max_length: 1048576 # 回應本文最大長度（位元組，此例為 1MB）
+      # 响应正文最大长度（字节，此例为 1MB） / Response body maximum length (bytes, 1MB in this example)
+      max_length: 1048576
     headers:
-      max_count: 64 # 回應標頭最大筆數
-      max_key_length: 256 # 回應標頭名稱最大長度（位元組）
-      max_value_length: 4096 # 回應標頭值最大長度（位元組）
+      # 响应标头最大笔数 / Maximum number of response headers
+      max_count: 64
+      # 响应标头名称最大长度（字节） / Response header name maximum length (bytes)
+      max_key_length: 256
+      # 响应标头值最大长度（字节） / Response header value maximum length (bytes)
+      max_value_length: 4096
 
-# --- 路由轉發規則 ---
-# 每條路由定義一個 HTTP 路徑如何被驗證並轉發到 NATS Subject
+# --- 路由转发规则 ---
+# --- Route Forwarding Rules ---
+# 每条路由定义一个 HTTP 路径如何被验证并转发到 NATS Subject / Each route defines how an HTTP path is validated and forwarded to a NATS subject
 routes:
-  - path: "/ping" # HTTP 請求路徑（對應 ApiNatsBridgeTemplate 的 ping 服務）
-    nats_subject: "ping_req" # 轉發至 NATS 的 Subject 名稱
-    methods: ["GET", "POST"] # 允許的 HTTP 方法清單
-    content_type: "application/x-www-form-urlencoded" # 要求的 Content-Type（空字串=不檢查；亦可用 application/json）
-    timeout: 10 # NATS 等待微服務回應的逾時秒數，超過則回傳 504 Gateway Timeout
-    return_fields: # 轉發到 NATS 訊息中包含的欄位清單（留空則傳送所有欄位）
-      - method # HTTP 請求方法（如 GET、POST）
-      - path # 請求路徑（如 /ping）
-      - headers # 請求標頭（鍵值對 map）
-      - cookies # 請求 Cookie（鍵值對 map）
-      - remote_addr # 遠端位址（含端口，如 127.0.0.1:54321）
-      - ip # 客戶端 IP（已解析 CDN 標頭後的真實 IP）
-      - params # URL 查詢參數（鍵值對 map）
-      - body # 請求本文（原始字串內容）
-    limits: # 此路由專用的請求限制（覆蓋全域 limits）
+  # HTTP 请求路径（对应 ApiNatsBridgeTemplate 的 ping 服务） / HTTP request path (corresponds to ApiNatsBridgeTemplate's ping service)
+  - path: "/ping"
+    # 转发至 NATS 的 Subject 名称 / NATS subject name to forward to
+    nats_subject: "ping_req"
+    # 允许的 HTTP 方法列表 / Allowed HTTP methods list
+    methods: ["GET", "POST"]
+    # 要求的 Content-Type（空字符串=不检查；亦可用 application/json） / Required Content-Type (empty string = no check; can also use application/json)
+    content_type: "application/x-www-form-urlencoded"
+    # NATS 等待微服务响应的超时秒数，超过则回传 504 Gateway Timeout / NATS timeout in seconds waiting for microservice response, returns 504 Gateway Timeout if exceeded
+    timeout: 10
+    # 转发到 NATS 消息中包含的字段列表（留空则传送所有字段） / List of fields to include in the forwarded NATS message (leave empty to include all fields)
+    return_fields:
+      - method # HTTP 请求方法（如 GET、POST） / HTTP request method (e.g. GET, POST)
+      - path # 请求路径（如 /ping） / Request path (e.g. /ping)
+      - headers # 请求标头（键值对 map） / Request headers (key-value map)
+      - cookies # 请求 Cookie（键值对 map） / Request cookies (key-value map)
+      - remote_addr # 远端地址（含端口，如 127.0.0.1:54321） / Remote address (including port, e.g. 127.0.0.1:54321)
+      - ip # 客户端 IP（已解析 CDN 标头后的真实 IP） / Client IP (real IP after resolving CDN headers)
+      - params # URL 查询参数（键值对 map） / URL query parameters (key-value map)
+      - body # 请求正文（原始字符串内容） / Request body (raw string content)
+    # 此路由专用的请求限制（覆盖全局 limits） / Route-specific request limits (overrides global limits)
+    limits:
       path:
-        max_length: 5 # "/ping" 固定 5 字元
+        # "/ping" 固定 5 字符 / "/ping" is exactly 5 characters
+        max_length: 5
       body:
-        max_length: 0 # 不接收請求體（0 表示禁止攜帶 body）
+        # 不接收请求体（0 表示禁止携带 body） / Do not accept request body (0 means body is forbidden)
+        max_length: 0
       headers:
-        max_count: 16 # 典型請求標頭數量上限
-        max_key_length: 25 # 最長標頭名稱長度（如 X-Forwarded-For = 15）
-        max_value_length: 256 # 標頭值最大長度
+        # 典型请求标头数量上限 / Typical maximum request header count
+        max_count: 16
+        # 最长标头名称长度（如 X-Forwarded-For = 15） / Maximum header name length (e.g. X-Forwarded-For = 15)
+        max_key_length: 25
+        # 标头值最大长度 / Maximum header value length
+        max_value_length: 256
       params:
-        max_count: 1 # 僅接受 1 個查詢參數（timestamp）
-        max_key_length: 9 # "timestamp" = 9 字元
-        max_value_length: 19 # int64 正數最大值 9223372036854775807 = 19 位數
+        # 仅接受 1 个查询参数（timestamp） / Only accept 1 query parameter (timestamp)
+        max_count: 1
+        # "timestamp" = 9 字符 / "timestamp" = 9 characters
+        max_key_length: 9
+        # int64 正数最大值 9223372036854775807 = 19 位数 / int64 max positive value 9223372036854775807 = 19 digits
+        max_value_length: 19
       cookies:
-        max_count: 4 # Cookie 最大筆數
-        max_key_length: 8 # Cookie 名稱最大長度
-        max_value_length: 36 # UUID 格式 8-4-4-4-12 = 36 字元
-    schema_body: # 請求本文的 JSON Schema 驗證（此處對應 application/x-www-form-urlencoded 的欄位結構）
-      root_type: object # 根類型為物件
-      strict: true # 嚴格模式：不允許 Schema 中未定義的欄位
-      properties: # 允許的屬性定義
-        timestamp: # 欄位名稱 timestamp
-          type: string # 欄位類型為字串
-    response_limits: # 此路由專用的回應限制（覆蓋全域 response_limits）
+        # Cookie 最大笔数 / Maximum number of cookies
+        max_count: 4
+        # Cookie 名称最大长度 / Maximum cookie name length
+        max_key_length: 8
+        # UUID 格式 8-4-4-4-12 = 36 字符 / UUID format 8-4-4-4-12 = 36 characters
+        max_value_length: 36
+    # 请求正文的 JSON Schema 验证（此处对应 application/x-www-form-urlencoded 的字段结构） / JSON Schema validation for request body (here corresponds to application/x-www-form-urlencoded field structure)
+    schema_body:
+      # 根类型为对象 / Root type is object
+      root_type: object
+      # 严格模式：不允许 Schema 中未定义的字段 / Strict mode: fields not defined in the schema are not allowed
+      strict: true
+      # 允许的属性定义 / Allowed property definitions
+      properties:
+        # 字段名称 timestamp / Field name: timestamp
+        timestamp:
+          # 字段类型为字符串 / Field type is string
+          type: string
+    # 此路由专用的响应限制（覆盖全局 response_limits） / Route-specific response limits (overrides global response_limits)
+    response_limits:
       body:
-        max_length: 76 # 回應本文最大長度：{"pong":±9223372036854775808,"ip":"0000:0000:0000:0000:0000:0000:0000:0000"}
+        # 响应正文最大长度：{"pong":±9223372036854775808,"ip":"0000:0000:0000:0000:0000:0000:0000:0000"} / Response body maximum length
+        max_length: 76
       headers:
-        max_count: 1 # 僅允許 1 個回應標頭（Content-Type）
-        max_key_length: 12 # "Content-Type" = 12 字元
-        max_value_length: 31 # "application/json; charset=utf-8" = 31 字元
-    response_schema_body: # 回應本文的 JSON Schema 驗證（驗證微服務回傳的 JSON 結構）
-      root_type: object # 根類型為物件
-      strict: true # 嚴格模式：不允許 Schema 中未定義的欄位
-      required: # 必要欄位清單
-        - pong # 必須包含 pong 欄位
-        - ip # 必須包含 ip 欄位
-      properties: # 屬性定義
-        pong: # pong 欄位定義
-          type: integer # 類型為整數（時間戳回應）
-        ip: # ip 欄位定義
-          type: string # 類型為字串（客戶端 IP 回顯）
+        # 仅允许 1 个响应标头（Content-Type） / Only allow 1 response header (Content-Type)
+        max_count: 1
+        # "Content-Type" = 12 字符 / "Content-Type" = 12 characters
+        max_key_length: 12
+        # "application/json; charset=utf-8" = 31 字符 / "application/json; charset=utf-8" = 31 characters
+        max_value_length: 31
+    # 响应正文的 JSON Schema 验证（验证微服务回传的 JSON 结构） / JSON Schema validation for response body (validates the JSON structure returned by the microservice)
+    response_schema_body:
+      # 根类型为对象 / Root type is object
+      root_type: object
+      # 严格模式：不允许 Schema 中未定义的字段 / Strict mode: fields not defined in the schema are not allowed
+      strict: true
+      # 必填字段列表 / Required fields list
+      required:
+        # 必须包含 pong 字段 / Must include the pong field
+        - pong
+        # 必须包含 ip 字段 / Must include the ip field
+        - ip
+      # 属性定义 / Property definitions
+      properties:
+        # pong 字段定义 / pong field definition
+        pong:
+          # 类型为整数（时间戳响应） / Type is integer (timestamp response)
+          type: integer
+        # ip 字段定义 / ip field definition
+        ip:
+          # 类型为字符串（客户端 IP 回显） / Type is string (client IP echo)
+          type: string
