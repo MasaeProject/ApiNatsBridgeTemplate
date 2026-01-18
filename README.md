@@ -33,13 +33,14 @@ GET /ping?timestamp=1716000000000
 ## 响应
 
 ```json
-{ "pong": 42, "ip": "127.0.0.1" }
+{ "pong": 42, "ip": "127.0.0.1", "servertime": 1716000000042 }
 ```
 
-| 字段   | 类型   | 说明                                                   |
-| ------ | ------ | ------------------------------------------------------ |
-| `pong` | int64  | 若提供 timestamp，为服务器当前时间与该值的差值（毫秒） |
-| `ip`   | string | 客户端 IP 地址                                         |
+| 字段         | 类型   | 说明                                                   |
+| ------------ | ------ | ------------------------------------------------------ |
+| `pong`       | int64  | 若提供 timestamp，为服务器当前时间与该值的差值（毫秒） |
+| `ip`         | string | 客户端 IP 地址                                         |
+| `servertime` | int64  | 服务器当前的系统毫秒级时间戳                           |
 
 ## 构建
 
@@ -98,9 +99,8 @@ ApiNatsBridge 转发 HTTP 请求时，NATS 消息的 JSON 结构如下：
 {
   "status_code": 200,
   "headers": { "Content-Type": "application/json; charset=utf-8" },
-  "body": "{\"pong\":42,\"ip\":\"127.0.0.1\"}"
+  "body": "{\"pong\":42,\"ip\":\"127.0.0.1\",\"servertime\":1716000000042}"
 }
-```
 
 | 字段          | 类型              | 说明                    |
 | ------------- | ----------------- | ----------------------- |
@@ -195,13 +195,14 @@ GET /ping?timestamp=1716000000000
 ## Response
 
 ```json
-{ "pong": 42, "ip": "127.0.0.1" }
+{ "pong": 42, "ip": "127.0.0.1", "servertime": 1716000000042 }
 ```
 
-| Field  | Type   | Description                                                                                 |
-| ------ | ------ | ------------------------------------------------------------------------------------------- |
-| `pong` | int64  | If timestamp is provided: the difference between server current time and the timestamp (ms) |
-| `ip`   | string | Client IP address                                                                           |
+| Field        | Type   | Description                                                                                 |
+| ------------ | ------ | ------------------------------------------------------------------------------------------- |
+| `pong`       | int64  | If timestamp is provided: the difference between server current time and the timestamp (ms) |
+| `ip`         | string | Client IP address                                                                           |
+| `servertime` | int64  | Current server system millisecond timestamp                                                 |
 
 ## Build
 
@@ -260,9 +261,8 @@ After the microservice finishes processing, it must return the following JSON st
 {
   "status_code": 200,
   "headers": { "Content-Type": "application/json; charset=utf-8" },
-  "body": "{\"pong\":42,\"ip\":\"127.0.0.1\"}"
+  "body": "{\"pong\":42,\"ip\":\"127.0.0.1\",\"servertime\":1716000000042}"
 }
-```
 
 | Field         | Type              | Description                 |
 | ------------- | ----------------- | --------------------------- |

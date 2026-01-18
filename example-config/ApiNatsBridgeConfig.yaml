@@ -237,8 +237,8 @@ routes:
     # 此路由专用的响应限制（覆盖全局 response_limits） / Route-specific response limits (overrides global response_limits)
     response_limits:
       body:
-        # 响应正文最大长度：{"pong":±9223372036854775808,"ip":"0000:0000:0000:0000:0000:0000:0000:0000"} / Response body maximum length
-        max_length: 76
+        # 响应正文最大长度：{"pong":±9223372036854775808,"ip":"0000:0000:0000:0000:0000:0000:0000:0000","servertime":9223372036854775807} / Response body maximum length
+        max_length: 109
       headers:
         # 仅允许 1 个响应标头（Content-Type） / Only allow 1 response header (Content-Type)
         max_count: 1
@@ -258,6 +258,8 @@ routes:
         - pong
         # 必须包含 ip 字段 / Must include the ip field
         - ip
+        # 必须包含 servertime 字段 / Must include the servertime field
+        - servertime
       # 属性定义 / Property definitions
       properties:
         # pong 字段定义 / pong field definition
@@ -268,3 +270,7 @@ routes:
         ip:
           # 类型为字符串（客户端 IP 回显） / Type is string (client IP echo)
           type: string
+        # servertime 字段定义 / servertime field definition
+        servertime:
+          # 类型为整数（服务器系统毫秒时间戳） / Type is integer (server system millisecond timestamp)
+          type: integer

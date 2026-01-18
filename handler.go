@@ -22,6 +22,10 @@ type pingResponse struct {
 	// IP 表示请求来源 IP。
 	// IP represents the requesting client's IP address.
 	IP string `json:"ip"`
+
+	// ServerTime 表示当前服务器的系统毫秒级时间戳。
+	// ServerTime represents the current server's system millisecond timestamp.
+	ServerTime int64 `json:"servertime"`
 }
 
 // handlePing 处理 ping 请求并产生响应。
@@ -64,10 +68,11 @@ func handlePing(req *bridgeRequest) *pingResponse {
 		pong = nowMs
 	}
 
-	// 回传 ping 结果与请求来源 IP。
-	// Return the ping result and the requesting client IP.
+	// 回传 ping 结果、请求来源 IP 与服务器当前时间戳。
+	// Return the ping result, requesting client IP, and server current timestamp.
 	return &pingResponse{
-		Pong: pong,
-		IP:   req.IP,
+		Pong:       pong,
+		IP:         req.IP,
+		ServerTime: nowMs,
 	}
 }
