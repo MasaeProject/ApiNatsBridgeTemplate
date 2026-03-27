@@ -101,6 +101,7 @@ ApiNatsBridge 转发 HTTP 请求时，NATS 消息的 JSON 结构如下：
   "headers": { "Content-Type": "application/json; charset=utf-8" },
   "body": "{\"pong\":42,\"ip\":\"127.0.0.1\",\"servertime\":1716000000042}"
 }
+```
 
 | 字段          | 类型              | 说明                    |
 | ------------- | ----------------- | ----------------------- |
@@ -162,7 +163,7 @@ nats_subject: "ping_req"
 
 ## English <a id="english"></a>
 
-[简体中文](#top) | **EnglishEnglish**
+[简体中文](#top) | **English**
 
 A microservice template project for [ApiNatsBridge](https://github.com/MasaeProject/ApiNatsBridge). Receives HTTP requests forwarded by ApiNatsBridge via NATS, processes them, and returns responses.
 
@@ -263,6 +264,7 @@ After the microservice finishes processing, it must return the following JSON st
   "headers": { "Content-Type": "application/json; charset=utf-8" },
   "body": "{\"pong\":42,\"ip\":\"127.0.0.1\",\"servertime\":1716000000042}"
 }
+```
 
 | Field         | Type              | Description                 |
 | ------------- | ----------------- | --------------------------- |

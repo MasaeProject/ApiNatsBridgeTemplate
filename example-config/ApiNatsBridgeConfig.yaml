@@ -68,7 +68,7 @@ nats_config:
 
   # 个别主题专用密钥（优先于全局密钥） / Subject-specific keys (takes priority over the global key)
   # 设为 "" 表示该主题明文传输 / Set to "" for plaintext transmission on that subject
-  # 主题名称到专用密钥的映射表，此处为空（全部使用全局密钥） / Mapping from subject names to dedicated keys, empty here (all use global key)
+  # 主题名称到专用密钥的映射表 / Mapping from subject names to dedicated keys
   nats_theme_keys: {}
 
 # --- 桥接层配置 ---
@@ -87,12 +87,18 @@ bridge:
   log:
     # 是否同时输出到控制台，设为 false 则仅写入文件 / Whether to also output to console, set to false to write to files only
     stdout: true
-    # 是否启用调试级别日志，设为 false 则仅输出 Info 及以上级别 / Whether to enable debug-level logging, set to false for Info and above only
-    debug: true
+    # 是否启用调试模式，设为空数组 [] 则仅输出 Info 及以上等级日志 / Whether to enable debug mode, set to empty array [] for Info level and above only
+    # 可选值 / Options：
+    #   HTTP  = 输出完整 HTTP 请求与响应通信内容，包括标头、Cookie 等 / Output full HTTP request/response content including headers, cookies
+    #   NATS  = 输出完整 NATS 通信内容，标明通信方向和主题 / Output full NATS communication content with direction and subject
+    #   LIMIT = 输出所有被规则拦截的请求的违规信息与内容 / Output violation info for all requests blocked by rules
+    debug: []
     # 是否使用覆盖模式，设为 true 则启动时清空现有日志文件，设为 false 或不提供则仅追加 / Whether to use overwrite mode, set to true to clear existing log files on startup, set to false or omit to append only
     overwrite: true
     # 是否使用彩色控制台输出，设为 true 或不提供则使用彩色，设为 false 则纯文本 / Whether to use colored console output, set to true or omit for colors, set to false for plain text
     color: true
+    # STATUS 状态日志的输出间隔秒数，0 或未设定时默认 60 秒 / STATUS log output interval in seconds, defaults to 60 when 0 or unset
+    status_interval_seconds: 60
     files:
       # 各模块独立日志文件路径，可分别配置 / Individual log file paths for each module, configurable separately
       # 留空或不填则该模块不写入文件 / Leave empty or omit to disable file output for that module
@@ -104,8 +110,8 @@ bridge:
       http: "logs/http.log"
       # NATS 客户端事件日志（连接、断线、重连等） / NATS client event log (connect, disconnect, reconnect, etc.)
       nats: "logs/nats.log"
-      # HTTP 服务器运行统计日志（定期汇总的性能指标） / HTTP server runtime stats log (periodically aggregated performance metrics)
-      httpstat: "logs/httpstat.log"
+      # HTTP 服务器与 NATS 状态统计日志（定期汇总的性能指标） / HTTP server and NATS status stats log (periodically aggregated performance metrics)
+      status: "logs/status.log"
       # 通用模块日志（如 /ping 等内置模块输出） / Generic module log (output from built-in modules like /ping)
       module: "logs/module.log"
 
@@ -113,19 +119,63 @@ bridge:
   # Timezone, affects all log timestamps, supports IANA timezone names (e.g. Asia/Shanghai, America/New_York) or hour offsets (e.g. 8, -5)
   timezone: "Asia/Shanghai"
 
-  # CDN 服务商传递真实 IP 的专属标头列表, 若 CDN 仅使用 X-Forwarded-For，则无需加入
+  # 日志时间日期显示格式 / Log timestamp display format
+  # Go 参考时间格式 / Go reference time format：2006-01-02 15:04:05
+  #   - 设为有效格式：控制台与日志文件均使用该格式 / Set to valid format: both console and log files use that format
+  #   - 设为空字符串 ""：控制台不显示时间日期，日志文件仍使用默认格式 / Set to "" : console shows no timestamp, log files still use default format
+  #   - 未设定（省略此字段）：使用默认值 "2006-01-02 15:04:05" (YYYY-MM-DD HH:mm:ss) / Omitted: uses default "2006-01-02 15:04:05" (YYYY-MM-DD HH:mm:ss)
+  #   - 可被路由级别 time_format 覆盖 / Can be overridden by route-level time_format
+  # time_format: ""                      # 空字符串：控制台无时间日期 / Empty string: no timestamp on console
+  # time_format: "2006-01-02 15:04:05"   # 默认值：YYYY-MM-DD HH:mm:ss / Default: YYYY-MM-DD HH:mm:ss
+  # time_format: "15:04:05"              # 仅时间：HH:mm:ss / Time only: HH:mm:ss
+  # time_format: "01/02 15:04:05"        # 月/日 时:分:秒 / MM/DD HH:mm:ss
+  # time_format: "2006-01-02T15:04:05.000Z07:00" # ISO 8601 格式 / ISO 8601 format
+
+  # CDN 服务商传递真实 IP 的专属标头列表，若 CDN 仅使用 X-Forwarded-For，则无需加入
   # List of CDN provider-specific headers that carry the real IP; if the CDN only uses X-Forwarded-For, no need to add here
   cdnheader:
     - "CF-Connecting-IP" # Cloudflare
     - "True-Client-IP" # Akamai / Cloudflare Enterprise
+    - "Fastly-Client-IP" # Fastly
+    - "CloudFront-Viewer-Address" # AWS CloudFront
+    - "CDN-Viewer-IP" # Google Cloud CDN
+    - "X-Azure-ClientIP" # Azure CDN / Microsoft CDN
+    - "Incap-Client-IP" # Imperva / Incapsula
+    - "X-Sucuri-ClientIP" # Sucuri
+    - "X-SP-Forwarding-IP" # StackPath
+    - "Ali-Cdn-Real-Ip" # 阿里云 CDN / DCDN / 全站加速
+    - "Ar-Real-IP" # ArvanCloud
 
   # 允许接收错误详细信息的 IP 白名单（用于开发调试） / IP whitelist allowed to receive detailed error information (for development debugging)
   error_detail_ips:
     - "127.0.0.1" # IPv4 本机地址 / IPv4 localhost
     - "::1" # IPv6 本机地址 / IPv6 localhost
 
-  # 自动为客户端 Cookie 写入 UUID 的键名（留空或不填则不启用） / Cookie key name to automatically write a UUID to client cookies (leave empty or omit to disable)
-  cookie_uuid_key: "brid" # Cookie 键名，首次访问时自动生成 UUID 并写入此 Cookie / Cookie key name, auto-generates a UUID on first visit and writes it to this cookie
+  # 微服务返回 JSON 中表示 HTTP 状态码的全局默认键名（可被路由级别覆盖，留空则路由未指定时默认 200）
+  # Global default key name for HTTP status code in microservice response JSON (overridable at route level; leave empty to default to 200 when route doesn't specify)
+  # http_code_key: ""
+
+  # 微服务返回 JSON 中表示错误码的全局默认键名（可被路由级别覆盖，留空则不启用）
+  # Global default key name for error code in microservice response JSON (overridable at route level; leave empty to disable)
+  # error_code_key: ""
+
+  # 响应正文的 JSON Schema 验证全局默认规则（可被路由级别覆盖，留空则不限制）
+  # Global default JSON Schema validation for response body (overridable at route level; leave empty for no validation)
+  # response_schema_body: {}
+
+  # 错误响应正文的 JSON Schema 验证全局默认规则（当 error_code_key 检测到时优先使用，可被路由级别覆盖，留空则不限制）
+  # Global default error response body JSON Schema validation (preferred when error_code_key is detected; overridable at route level; leave empty for no validation)
+  # response_error_schema_body: {}
+
+  # 微服务错误信息的显示模式全局默认值（可被路由级别覆盖）
+  # Global default error info display mode (overridable at route level)
+  #   0 = 不在日志文件中记录（仅保留基本的 [HTTP] 日志） / Don't log (only basic [HTTP] log remains)
+  #   1 = 在日志文件中记录并输出 / Log and output to file
+  #   2 = 在日志文件中记录并输出，内容返回给白名单 IP 用户 / Log, output, and return content to whitelisted IPs
+  #   3 = 在日志文件中记录并输出，内容返回给所有用户 / Log, output, and return content to all users
+  #   4 = 不记录（仅保留基本的 [HTTP] 日志），内容返回给白名单 IP 用户 / Don't log (only basic [HTTP] log), return content to whitelisted IPs
+  #   5 = 不记录（仅保留基本的 [HTTP] 日志），内容返回给所有用户 / Don't log (only basic [HTTP] log), return content to all users
+  # error_info_show: 1
 
   # 请求字段长度限制（全局级别，0 或省略表示不限制，可被路由级别覆盖） / Request field length limits (global level, 0 or omitted means no limit, can be overridden at the route level)
   limits:
@@ -169,6 +219,37 @@ bridge:
       # 响应标头值最大长度（字节） / Response header value maximum length (bytes)
       max_value_length: 4096
 
+  # --- 令牌验证配置（可选，若省略则不启用令牌验证） ---
+  # --- Token verification config (optional; omit to disable token verification) ---
+  # token:
+  #   # 验证令牌用的 NATS 主题（默认值） / NATS subject for token verification (default)
+  #   nats_subject: "auth.token.verify"
+  #   # 不需要检查令牌的 HTTP 路径白名单 / HTTP path whitelist for paths not requiring token verification
+  #   path_whitelist:
+  #     - "/ping"
+  #     - "/auth/login"
+  #   # 令牌所在 HTTP 标头名称（默认值） / HTTP header name for the token (default)
+  #   header_name: "Authorization"
+  #   # 令牌的最小长度（默认值） / Minimum token length (default)
+  #   min_length: 10
+  #   # 令牌的最大长度（默认值） / Maximum token length (default)
+  #   max_length: 4096
+  #   # tag 部分的分隔符（默认值） / Tag separator (default)
+  #   tag_separator: "|"
+  #   # 令牌验证成功时的回传值（默认值） / Return value when token verification succeeds (default)
+  #   success_value: "0"
+  #   # 等待令牌验证回应的超时秒数（默认值） / Timeout in seconds waiting for token verification response (default)
+  #   timeout: 5
+  #   # 令牌验证结果缓存的最大笔数（默认值，达上限时清空缓存） / Maximum number of cached token verification entries (default, clears cache when limit reached)
+  #   cache_max_entries: 1000
+  #   # 令牌验证的最大并发请求数（默认值，超限时返回 HTTP 503） / Maximum concurrent token verification requests (default, returns HTTP 503 when exceeded)
+  #   max_concurrent: 256
+  #
+  # # 全局转发 NATS 的最大并发请求数（0 = 不限制） / Maximum concurrent NATS forwarding requests globally (0 = unlimited)
+  # max_concurrent: 512
+  # # HTTP 层的最大并发请求处理数（0 = 不限制） / Maximum concurrent HTTP request processing (0 = unlimited)
+  # http_max_concurrent: 1024
+
 # --- 路由转发规则 ---
 # --- Route Forwarding Rules ---
 # 每条路由定义一个 HTTP 路径如何被验证并转发到 NATS Subject / Each route defines how an HTTP path is validated and forwarded to a NATS subject
@@ -178,10 +259,10 @@ routes:
     # 转发至 NATS 的 Subject 名称 / NATS subject name to forward to
     nats_subject: "ping_req"
     # 允许的 HTTP 方法列表 / Allowed HTTP methods list
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
     # 要求的 Content-Type（空字符串=不检查；亦可用 application/json） / Required Content-Type (empty string = no check; can also use application/json)
     content_type: "application/x-www-form-urlencoded"
-    # NATS 等待微服务响应的超时秒数，超过则回传 504 Gateway Timeout / NATS timeout in seconds waiting for microservice response, returns 504 Gateway Timeout if exceeded
+    # NATS 等待微服务响应的超时秒数，超过则返回 504 Gateway Timeout / NATS timeout in seconds waiting for microservice response, returns 504 Gateway Timeout if exceeded
     timeout: 10
     # 转发到 NATS 消息中包含的字段列表（留空则传送所有字段） / List of fields to include in the forwarded NATS message (leave empty to include all fields)
     return_fields:
@@ -246,13 +327,13 @@ routes:
         max_key_length: 12
         # "application/json; charset=utf-8" = 31 字符 / "application/json; charset=utf-8" = 31 characters
         max_value_length: 31
-    # 响应正文的 JSON Schema 验证（验证微服务回传的 JSON 结构） / JSON Schema validation for response body (validates the JSON structure returned by the microservice)
+    # 响应正文的 JSON Schema 验证（验证微服务返回的 JSON 结构） / JSON Schema validation for response body (validates the JSON structure returned by the microservice)
     response_schema_body:
       # 根类型为对象 / Root type is object
       root_type: object
       # 严格模式：不允许 Schema 中未定义的字段 / Strict mode: fields not defined in the schema are not allowed
       strict: true
-      # 必填字段列表 / Required fields list
+      # 必需字段列表 / Required fields list
       required:
         # 必须包含 pong 字段 / Must include the pong field
         - pong
@@ -274,3 +355,42 @@ routes:
         servertime:
           # 类型为整数（服务器系统毫秒时间戳） / Type is integer (server system millisecond timestamp)
           type: integer
+    # 错误响应正文的 JSON Schema 验证（当 HTTP 状态码 >=400 时优先使用，未设定则沿用 response_schema_body）
+    # Error response body JSON Schema validation (preferred when HTTP status >=400; uses response_schema_body if not set)
+    # response_error_schema_body:
+    #   # 根类型为对象 / Root type is object
+    #   root_type: object
+    #   # 严格模式：不允许 Schema 中未定义的字段 / Strict mode: fields not defined in the schema are not allowed
+    #   strict: true
+    #   # 必需字段列表 / Required fields list
+    #   required:
+    #     # 必须包含 error 字段 / Must include the error field
+    #     - error
+    #   # 属性定义 / Property definitions
+    #   properties:
+    #     # error 字段定义 / error field definition
+    #     error:
+    #       # 类型为字符串（错误描述） / Type is string (error description)
+    #       type: string
+    # 微服务返回 JSON 中表示 HTTP 状态码的键名（此路由会以此检测 BridgeResponse 格式，不指定则默认 200）
+    # Key name for HTTP status code in microservice response JSON (used to detect BridgeResponse format; defaults to 200 if not specified)
+    # http_code_key: ""
+    # 微服务返回 JSON 中表示错误码的键名（检测到此键时触发 response_error_schema_body 验证）
+    # Key name for error code in microservice response JSON (triggers response_error_schema_body validation when detected)
+    # error_code_key: ""
+    # 微服务错误信息的显示模式（覆盖 bridge 层的全局设定）
+    # Error info display mode for this route (overrides bridge-level global setting)
+    #   0 = 不在日志文件中记录（仅保留基本的 [HTTP] 日志） / Don't log (only basic [HTTP] log remains)
+    #   1 = 在日志文件中记录并输出 / Log and output to file
+    #   2 = 在日志文件中记录并输出，内容返回给白名单 IP 用户 / Log, output, and return content to whitelisted IPs
+    #   3 = 在日志文件中记录并输出，内容返回给所有用户 / Log, output, and return content to all users
+    #   4 = 不记录（仅保留基本的 [HTTP] 日志），内容返回给白名单 IP 用户 / Don't log (only basic [HTTP] log), return content to whitelisted IPs
+    #   5 = 不记录（仅保留基本的 [HTTP] 日志），内容返回给所有用户 / Don't log (only basic [HTTP] log), return content to all users
+    # error_info_show: 0
+    # 此路由专用的日志时间日期显示格式（覆盖 bridge 层的全局设定）；空字符串表示控制台不显示时间但日志文件仍记录
+    # Route-specific log timestamp format (overrides bridge-level global setting); empty string means no timestamp on console but log files still record it
+    # time_format: ""                      # 空字符串：控制台无时间日期 / Empty string: no timestamp on console
+    # time_format: "2006-01-02 15:04:05"   # 默认值：YYYY-MM-DD HH:mm:ss / Default: YYYY-MM-DD HH:mm:ss
+    # 此路由的最大并发 NATS 转发请求数（0 = 不限制，保护特定后端微服务）
+    # Maximum concurrent NATS forwarding requests for this route (0 = unlimited, protects specific backend microservice)
+    # max_concurrent: 64
