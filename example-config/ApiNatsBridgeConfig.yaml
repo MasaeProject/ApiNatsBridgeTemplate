@@ -249,6 +249,16 @@ bridge:
   # max_concurrent: 512
   # # HTTP 层的最大并发请求处理数（0 = 不限制） / Maximum concurrent HTTP request processing (0 = unlimited)
   # http_max_concurrent: 1024
+  #
+  # # 自定义回应标头（全局级别，附加到所有 HTTP 回应） / Custom response headers (global level, added to all HTTP responses)
+  # # 注意 / Note：Access-Control-Allow-Methods 与 Access-Control-Allow-Headers /
+  # #   Access-Control-Allow-Methods and Access-Control-Allow-Headers
+  # #   当路由 methods 包含 OPTIONS 时会自动从路由设定产生 / are auto-generated from route config when OPTIONS is in methods
+  # #   无需在此手动设定；如需覆盖可在路由级别 response_headers 中指定 / no need to set here; override via route-level response_headers if needed
+  # response_headers:
+  #   Access-Control-Allow-Origin: "*"
+  #   X-Frame-Options: "DENY"
+  #   X-Content-Type-Options: "nosniff"
 
 # --- 路由转发规则 ---
 # --- Route Forwarding Rules ---
@@ -394,3 +404,9 @@ routes:
     # 此路由的最大并发 NATS 转发请求数（0 = 不限制，保护特定后端微服务）
     # Maximum concurrent NATS forwarding requests for this route (0 = unlimited, protects specific backend microservice)
     # max_concurrent: 64
+    # 此路由专用的自定义回应标头（覆盖自动 CORS 与 bridge 层全局设定）
+    # Route-specific custom response headers (overrides auto CORS and bridge-level global settings)
+    # 例如要限定 Origin 或覆蓋自動產生的 Allow-Methods / e.g. to restrict Origin or override auto Allow-Methods:
+    # response_headers:
+    #   Access-Control-Allow-Origin: "https://example.com"
+    #   X-Custom-Header: "custom-value"
