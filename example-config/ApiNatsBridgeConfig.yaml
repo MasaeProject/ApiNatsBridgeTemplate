@@ -244,6 +244,11 @@ bridge:
   #   cache_max_entries: 1000
   #   # 令牌验证的最大并发请求数（默认值，超限时返回 HTTP 503） / Maximum concurrent token verification requests (default, returns HTTP 503 when exceeded)
   #   max_concurrent: 256
+  #   # PASETO 本地解密金鑰（選填） / PASETO local decryption key (optional)
+  #   # 支援與 UserValidator 相同的格式 / Same format as UserValidator
+  #   # paseto_secret_key: "404142..."
+  #   # paseto_secret_key:
+  #   #   1748736000: "404142..."
   #
   # # 全局转发 NATS 的最大并发请求数（0 = 不限制） / Maximum concurrent NATS forwarding requests globally (0 = unlimited)
   # max_concurrent: 512
@@ -284,6 +289,17 @@ routes:
       - ip # 客户端 IP（已解析 CDN 标头后的真实 IP） / Client IP (real IP after resolving CDN headers)
       - params # URL 查询参数（键值对 map） / URL query parameters (key-value map)
       - body # 请求正文（原始字符串内容） / Request body (raw string content)
+      # --- 以下为令牌 claims 字段（来自令牌验证回覆，非 HTTP 请求） ---
+      # --- Token claim fields below (from token verification reply, not HTTP request) ---
+      # 不属于以上 8 个已知字段的名称会自动从令牌 claims 中解析，以顶层字段注入转发数据。
+      # Names not matching the 8 known fields above are automatically resolved from token claims
+      # and injected as top-level fields into the forwarded data.
+      # 标准 claims / Standard claims: username, app, sub, iss, iat, nbf, exp, jti
+      # 自定义 claims / Custom claims: 取决于 UserValidator 的 custom_claims 配置 / depends on UserValidator's custom_claims config
+      # 仅对不在 token.path_whitelist 中的路由生效 / Only effective on routes NOT in token.path_whitelist
+      # - sub # [令牌 claims / Token claims] 令牌主体 / Token subject
+      # - username # [令牌 claims / Token claims] 用户名称 / Username
+      # - uuid # [令牌 claims / Token claims] 用户唯一标识（自定义 claim）/ User unique ID (custom claim)
     # 此路由专用的请求限制（覆盖全局 limits） / Route-specific request limits (overrides global limits)
     limits:
       path:
@@ -410,3 +426,15 @@ routes:
     # response_headers:
     #   Access-Control-Allow-Origin: "https://example.com"
     #   X-Custom-Header: "custom-value"
+    # 令牌 claims 注入：在 return_fields 中加入非 BridgeRequest 已知欄位名稱，
+    # 即可從令牌驗證回覆中提取對應 claims 並以頂層欄位注入轉發資料。
+    # Token claims injection: add non-BridgeRequest field names to return_fields,
+    # and the bridge will extract the corresponding claims from token verification reply
+    # and inject them as top-level fields into the forwarded data.
+    # 例如 / Example: return_fields 中加入 "sub" 和 "username"，下游收到 / downstream receives:
+    # {"method":"...","body":"...","sub":"admin","username":"admin"}
+    # 可用欄位 / Available fields: username, app, sub, iss, iat, nbf, exp, jti
+    # 及自訂 claims（如 uuid）/ and custom claims (e.g., uuid)
+    # 向後相容：token_fields 仍可使用，效果等同（頂層注入）
+    # Backward compatible: token_fields still works with the same behavior (top-level injection)
+    # token_fields: ["uuid", "username"]
